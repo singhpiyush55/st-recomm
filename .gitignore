@@ -36,3 +36,36 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+
+node_modules/
+.pnpm-store/
+ 
+# Build outputs
+.next/
+dist/
+*.tsbuildinfo
+ 
+# Turborepo
+.turbo/
+ 
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+ 
+# Environment files
+.env
+.env.local
+.env.*.local
+ 
+# Database
+*.db
+*.sqlite
+ 
+md-files/
+# OS
+.DS_Store
+Thumbs.db

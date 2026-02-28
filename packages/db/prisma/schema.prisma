@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+ 
+model PipelineRun {
+  id                  String   @id @default(cuid())
+  runDate             DateTime @default(now())
+  status              String   @default("pending")
+  sectorsTargeted     String[]
+  totalStocksAnalyzed Int      @default(0)
+  createdAt           DateTime @default(now())
+  recommendations     Recommendation[]
+}
+ 
+model Recommendation {
+  id           String   @id @default(cuid())
+  runId        String
+  ticker       String
+  finalScore   Float
+  verdict      String
+  entryLow     Float
+  entryHigh    Float
+  stopLoss     Float
+  target       Float
+  rrRatio      Float
+  createdAt    DateTime @default(now())
+  run          PipelineRun @relation(fields: [runId], references: [id])
+  scoreBreakdown ScoreBreakdown?
+  technicalSignal TechnicalSignal?
+  fundamentalData FundamentalData?
+  sentimentData   SentimentData?
+  llmOutputs      LlmOutput[]
+}
+ 
+model ScoreBreakdown {
+  id               String   @id @default(cuid())
+  recommendationId String   @unique
+  techScore        Float
+  fundScore        Float
+  sectorScore      Float
+  sentimentScore   Float
+  riskPenalty      Float
+  finalScore       Float
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id])
+}
+ 
+model TechnicalSignal {
+  id               String   @id @default(cuid())
+  recommendationId String   @unique
+  ticker           String
+  date             DateTime
+  ema20            Float
+  ema50            Float
+  ema200           Float
+  macdLine         Float
+  macdSignal       Float
+  macdHistogram    Float
+  rsi              Float
+  bbUpper          Float
+  bbLower          Float
+  atr              Float
+  volumeSpike      Boolean
+  obvTrend         String
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id])
+}
+ 
+model FundamentalData {
+  id               String   @id @default(cuid())
+  recommendationId String   @unique
+  ticker           String
+  peRatio          Float?
+  pegRatio         Float?
+  roe              Float?
+  roa              Float?
+  debtToEquity     Float?
+  interestCoverage Float?
+  revenueGrowth    Float?
+  epsGrowth        Float?
+  freeCashFlow     Float?
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id])
+}
+ 
+model SentimentData {
+  id               String   @id @default(cuid())
+  recommendationId String   @unique
+  ticker           String
+  newsScore        Float
+  insiderSignal    String
+  earningsSurprise Float?
+  headlinesJson    Json
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id])
+}
+ 
+model LlmOutput {
+  id               String   @id @default(cuid())
+  recommendationId String
+  stage            Int
+  promptHash       String
+  responseJson     Json
+  tokensUsed       Int
+  latencyMs        Int
+  createdAt        DateTime @default(now())
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id])
+}
+ 
+model BacktestResult {
+  id           String   @id @default(cuid())
+  ticker       String
+  signalDate   DateTime
+  entryPrice   Float
+  exitPrice    Float?
+  exitDate     DateTime?
+  returnPct    Float?
+  hitTarget    Boolean  @default(false)
+  hitStop      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+

@@ -1,20 +1,23 @@
 {
-  "name": "st-recomm",
+  "name": "stock-recommender",
   "private": true,
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "db:generate": "turbo db:generate",
+    "db:migrate": "turbo db:migrate"
   },
   "devDependencies": {
-    "prettier": "^3.7.4",
-    "turbo": "^2.8.12",
-    "typescript": "5.9.2"
+    "turbo": "latest"
   },
-  "packageManager": "pnpm@9.0.0",
-  "engines": {
-    "node": ">=18"
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "prisma",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }
