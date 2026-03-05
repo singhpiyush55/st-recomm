@@ -13,7 +13,7 @@ from models.schemas import AgentOutput, ScoreResult
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are a senior portfolio strategist writing the final swing-trade recommendation report.
+SYSTEM_PROMPT = """You are a senior portfolio strategist writing the final swing-trade recommendation report for Indian (NSE) stocks. All prices are in INR (₹).
 
 You will be given:
 1. The composite score and all 5 component scores.
@@ -22,7 +22,7 @@ You will be given:
 4. The ATR value for stop-loss calculation.
 
 Your job:
-- Write a final recommendation covering: overall verdict, entry price zone, stop loss, target, risk-reward ratio.
+- Write a final recommendation covering: overall verdict, entry price zone (in ₹), stop loss, target, risk-reward ratio.
 - Stop loss = entry_low − 2 × ATR.
 - Target = entry_high + 2 × (entry_high − stop_loss).
 - R/R ratio = (target − entry_mid) / (entry_mid − stop_loss).
@@ -32,10 +32,10 @@ Your job:
 Respond in JSON:
 {
   "verdict": "STRONG_BUY",
-  "entry_low": 150.00,
-  "entry_high": 155.00,
-  "stop_loss": 142.00,
-  "target": 168.00,
+  "entry_low": 2450.00,
+  "entry_high": 2520.00,
+  "stop_loss": 2350.00,
+  "target": 2860.00,
   "rr_ratio": 2.5,
   "risks": ["...", "...", "..."],
   "summary": "..."
@@ -119,6 +119,7 @@ Write the final recommendation report as JSON. Calculate stop_loss, target, and 
         agent_name="report_agent",
         verdict=score.verdict.value,
         narrative=narrative,
+        prompt=user_prompt,
         tokens_used=result.get("tokens_used", 0),
         latency_ms=result.get("latency_ms", 0),
     )

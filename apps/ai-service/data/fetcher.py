@@ -15,35 +15,90 @@ import yfinance as yf
 
 from data.cache import cache
 
-# ── Sector → tickers mapping (US market) ────────────────────────────
+# ── Sector → tickers mapping (Indian market / NSE) ──────────────────
 
+# Nifty sectoral index tickers on yfinance
 SECTOR_ETFS: dict[str, str] = {
-    "Technology": "XLK",
-    "Financials": "XLF",
-    "Energy": "XLE",
-    "Healthcare": "XLV",
-    "Industrials": "XLI",
-    "Communication Services": "XLC",
-    "Consumer Discretionary": "XLY",
-    "Consumer Staples": "XLP",
-    "Utilities": "XLU",
-    "Real Estate": "XLRE",
-    "Materials": "XLB",
+    "IT": "^CNXIT",
+    "Banking": "^NSEBANK",
+    "Pharma": "^CNXPHARMA",
+    "Auto": "^CNXAUTO",
+    "FMCG": "^CNXFMCG",
+    "Metal": "^CNXMETAL",
+    "Realty": "^CNXREALTY",
+    "Energy": "^CNXENERGY",
+    "Infrastructure": "^CNXINFRA",
+    "PSU Bank": "^CNXPSUBANK",
+    "Financial Services": "^CNXFIN",
 }
 
-# Reasonable per-sector universe (large-cap, liquid names)
+# ── Company name mapping for better news search ─────────────────────
+TICKER_COMPANY_NAMES: dict[str, str] = {
+    "RELIANCE.NS": "Reliance Industries",
+    "TCS.NS": "Tata Consultancy Services",
+    "HDFCBANK.NS": "HDFC Bank",
+    "INFY.NS": "Infosys",
+    "ICICIBANK.NS": "ICICI Bank",
+    "HINDUNILVR.NS": "Hindustan Unilever",
+    "SBIN.NS": "State Bank of India",
+    "BHARTIARTL.NS": "Bharti Airtel",
+    "ITC.NS": "ITC Limited",
+    "KOTAKBANK.NS": "Kotak Mahindra Bank",
+    "LT.NS": "Larsen Toubro",
+    "AXISBANK.NS": "Axis Bank",
+    "WIPRO.NS": "Wipro",
+    "HCLTECH.NS": "HCL Technologies",
+    "TATAMOTORS.NS": "Tata Motors",
+    "SUNPHARMA.NS": "Sun Pharma",
+    "MARUTI.NS": "Maruti Suzuki",
+    "TITAN.NS": "Titan Company",
+    "BAJFINANCE.NS": "Bajaj Finance",
+    "ASIANPAINT.NS": "Asian Paints",
+    "ULTRACEMCO.NS": "UltraTech Cement",
+    "M&M.NS": "Mahindra Mahindra",
+    "TATASTEEL.NS": "Tata Steel",
+    "NESTLEIND.NS": "Nestle India",
+    "POWERGRID.NS": "Power Grid Corporation",
+    "NTPC.NS": "NTPC Limited",
+    "TECHM.NS": "Tech Mahindra",
+    "DRREDDY.NS": "Dr Reddys Laboratories",
+    "CIPLA.NS": "Cipla",
+    "BAJAJFINSV.NS": "Bajaj Finserv",
+    "ONGC.NS": "ONGC",
+    "ADANIENT.NS": "Adani Enterprises",
+    "ADANIPORTS.NS": "Adani Ports",
+    "JSWSTEEL.NS": "JSW Steel",
+    "COALINDIA.NS": "Coal India",
+    "HDFCLIFE.NS": "HDFC Life Insurance",
+    "SBILIFE.NS": "SBI Life Insurance",
+    "BRITANNIA.NS": "Britannia Industries",
+    "DIVISLAB.NS": "Divis Laboratories",
+    "GRASIM.NS": "Grasim Industries",
+    "INDUSINDBK.NS": "IndusInd Bank",
+    "HEROMOTOCO.NS": "Hero MotoCorp",
+    "BAJAJ-AUTO.NS": "Bajaj Auto",
+    "EICHERMOT.NS": "Eicher Motors",
+    "APOLLOHOSP.NS": "Apollo Hospitals",
+    "TATACONSUM.NS": "Tata Consumer Products",
+    "BPCL.NS": "Bharat Petroleum",
+    "IOC.NS": "Indian Oil Corporation",
+    "HINDALCO.NS": "Hindalco Industries",
+    "VEDL.NS": "Vedanta",
+}
+
+# Reasonable per-sector universe (NSE large-cap, liquid names)
 SECTOR_STOCKS: dict[str, list[str]] = {
-    "Technology": ["AAPL", "MSFT", "NVDA", "AVGO", "ADBE", "CRM", "AMD", "INTC", "CSCO", "ORCL"],
-    "Financials": ["JPM", "BAC", "GS", "MS", "WFC", "C", "BLK", "SCHW", "AXP", "USB"],
-    "Energy": ["XOM", "CVX", "COP", "SLB", "EOG", "MPC", "PSX", "VLO", "OXY", "HAL"],
-    "Healthcare": ["UNH", "JNJ", "LLY", "PFE", "ABBV", "MRK", "TMO", "ABT", "DHR", "BMY"],
-    "Industrials": ["CAT", "HON", "UNP", "BA", "RTX", "DE", "LMT", "GE", "MMM", "FDX"],
-    "Communication Services": ["META", "GOOGL", "NFLX", "DIS", "CMCSA", "T", "VZ", "TMUS", "CHTR", "EA"],
-    "Consumer Discretionary": ["AMZN", "TSLA", "HD", "MCD", "NKE", "SBUX", "LOW", "TJX", "BKNG", "CMG"],
-    "Consumer Staples": ["PG", "KO", "PEP", "COST", "WMT", "PM", "MO", "CL", "MDLZ", "KHC"],
-    "Utilities": ["NEE", "DUK", "SO", "D", "AEP", "SRE", "EXC", "XEL", "ED", "WEC"],
-    "Real Estate": ["PLD", "AMT", "CCI", "EQIX", "SPG", "PSA", "O", "WELL", "DLR", "AVB"],
-    "Materials": ["LIN", "APD", "SHW", "ECL", "DD", "NEM", "FCX", "NUE", "VMC", "MLM"],
+    "IT": ["TCS.NS", "INFY.NS", "HCLTECH.NS", "WIPRO.NS", "TECHM.NS", "LTIM.NS", "MPHASIS.NS", "COFORGE.NS", "PERSISTENT.NS", "LTTS.NS"],
+    "Banking": ["HDFCBANK.NS", "ICICIBANK.NS", "SBIN.NS", "KOTAKBANK.NS", "AXISBANK.NS", "INDUSINDBK.NS", "BANKBARODA.NS", "PNB.NS", "FEDERALBNK.NS", "IDFCFIRSTB.NS"],
+    "Pharma": ["SUNPHARMA.NS", "DRREDDY.NS", "CIPLA.NS", "DIVISLAB.NS", "AUROPHARMA.NS", "LUPIN.NS", "BIOCON.NS", "TORNTPHARM.NS", "ALKEM.NS", "GLENMARK.NS"],
+    "Auto": ["TATAMOTORS.NS", "MARUTI.NS", "M&M.NS", "BAJAJ-AUTO.NS", "HEROMOTOCO.NS", "EICHERMOT.NS", "ASHOKLEY.NS", "TVSMOTOR.NS", "BALKRISIND.NS", "MRF.NS"],
+    "FMCG": ["HINDUNILVR.NS", "ITC.NS", "NESTLEIND.NS", "BRITANNIA.NS", "TATACONSUM.NS", "DABUR.NS", "MARICO.NS", "GODREJCP.NS", "COLPAL.NS", "EMAMILTD.NS"],
+    "Metal": ["TATASTEEL.NS", "JSWSTEEL.NS", "HINDALCO.NS", "VEDL.NS", "COALINDIA.NS", "NMDC.NS", "SAIL.NS", "NATIONALUM.NS", "APLAPOLLO.NS", "JINDALSTEL.NS"],
+    "Realty": ["DLF.NS", "GODREJPROP.NS", "OBEROIRLTY.NS", "PHOENIXLTD.NS", "PRESTIGE.NS", "BRIGADE.NS", "SOBHA.NS", "SUNTECK.NS", "MAHLIFE.NS", "LODHA.NS"],
+    "Energy": ["RELIANCE.NS", "ONGC.NS", "BPCL.NS", "IOC.NS", "NTPC.NS", "POWERGRID.NS", "GAIL.NS", "ADANIGREEN.NS", "TATAPOWER.NS", "ADANIENT.NS"],
+    "Infrastructure": ["LT.NS", "ADANIPORTS.NS", "ULTRACEMCO.NS", "GRASIM.NS", "SHREECEM.NS", "AMBUJACEM.NS", "ACC.NS", "SIEMENS.NS", "ABB.NS", "BEL.NS"],
+    "PSU Bank": ["SBIN.NS", "BANKBARODA.NS", "PNB.NS", "CANBK.NS", "UNIONBANK.NS", "IOB.NS", "CENTRALBK.NS", "INDIANB.NS", "MAHABANK.NS", "BANKINDIA.NS"],
+    "Financial Services": ["BAJFINANCE.NS", "BAJAJFINSV.NS", "HDFCLIFE.NS", "SBILIFE.NS", "ICICIPRULI.NS", "CHOLAFIN.NS", "MUTHOOTFIN.NS", "SHRIRAMFIN.NS", "PFC.NS", "RECLTD.NS"],
 }
 
 NEWS_API_KEY = os.getenv("NEWS_API_KEY", "")
@@ -107,7 +162,7 @@ def get_fundamentals(ticker: str) -> dict:
 # ── Sector ETF data ──────────────────────────────────────────────────
 
 def get_sector_etf_data(etfs: Optional[list[str]] = None, days: int = 30) -> pd.DataFrame:
-    """Fetch price data for sector ETFs. Returns DataFrame with one column per ETF."""
+    """Fetch price data for sector indices. Returns DataFrame with one column per index."""
     etfs = etfs or list(SECTOR_ETFS.values())
     cache_key = f"sector_etfs:{','.join(sorted(etfs))}:{days}"
     cached = cache.get(cache_key)
@@ -135,7 +190,7 @@ def get_sector_etf_data(etfs: Optional[list[str]] = None, days: int = 30) -> pd.
 # ── News headlines ───────────────────────────────────────────────────
 
 def get_news_headlines(ticker: str, days: int = 7) -> list[str]:
-    """Fetch recent news headlines from NewsAPI."""
+    """Fetch recent news headlines from NewsAPI. Uses company name for Indian tickers."""
     cache_key = f"news:{ticker}:{days}"
     cached = cache.get(cache_key)
     if cached is not None:
@@ -145,10 +200,13 @@ def get_news_headlines(ticker: str, days: int = 7) -> list[str]:
         # No API key configured — return empty list gracefully
         return []
 
+    # Use company name for better news matching with Indian tickers
+    query = TICKER_COMPANY_NAMES.get(ticker, ticker.replace(".NS", "").replace(".BO", ""))
+
     from_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
     url = "https://newsapi.org/v2/everything"
     params = {
-        "q": ticker,
+        "q": query,
         "from": from_date,
         "sortBy": "relevancy",
         "pageSize": 20,
@@ -181,8 +239,8 @@ def get_stock_universe(sectors: list[str]) -> list[str]:
 
 # ── Market index helpers ─────────────────────────────────────────────
 
-def get_index_data(index: str = "^GSPC", days: int = 252) -> pd.DataFrame:
-    """Fetch S&P 500 (or any index) OHLCV data."""
+def get_index_data(index: str = "^NSEI", days: int = 252) -> pd.DataFrame:
+    """Fetch Nifty 50 (or any index) OHLCV data."""
     return get_ohlcv(index, days)
 
 

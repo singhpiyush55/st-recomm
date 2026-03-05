@@ -1,6 +1,6 @@
-# Fundamental Analysis Guide for Swing Trading
+# Fundamental Analysis Guide for Swing Trading (Indian Market / NSE)
 
-This guide is injected as context into the LLM when it interprets fundamental ratios. The model should use these rules to evaluate a stock's financial health for swing trades lasting 2-6 weeks.
+This guide is injected as context into the LLM when it interprets fundamental ratios. The model should use these rules to evaluate a stock's financial health for swing trades lasting 2-6 weeks on the Indian market (NSE/BSE).
 
 ---
 
@@ -26,8 +26,8 @@ This guide is injected as context into the LLM when it interprets fundamental ra
 - Above 20%: Excellent. Company generates strong returns on shareholder capital.
 - 15-20%: Good. Meets the threshold for quality.
 - 10-15%: Mediocre. Acceptable only if improving quarter-over-quarter.
-- Below 10%: Weak. Avoid unless the company is in a capital-intensive sector (utilities, REITs) where lower ROE is normal.
-- Sector adjustments: Banks typically have ROE of 10-15% which is acceptable. Tech companies should be above 15%.
+- Below 10%: Weak. Avoid unless the company is in a capital-intensive sector (Power, Infrastructure, PSU Banks) where lower ROE is normal.
+- Sector adjustments: Indian PSU banks typically have ROE of 8-14% which is acceptable. Private banks should be above 14%. IT companies should be above 20%. FMCG companies often have ROE above 25% due to asset-light models.
 
 ### Return on Assets (ROA)
 - Above 10%: Strong asset efficiency.
@@ -58,9 +58,9 @@ This guide is injected as context into the LLM when it interprets fundamental ra
 ### Debt-to-Equity Ratio
 - Below 0.5: Very conservative balance sheet. Strong.
 - 0.5-1.0: Manageable debt. Acceptable for most sectors.
-- 1.0-2.0: Elevated leverage. Acceptable only for capital-intensive industries (utilities, telecom, REITs).
+- 1.0-2.0: Elevated leverage. Acceptable only for capital-intensive industries (Power, Infrastructure, Telecom, Metal).
 - Above 2.0: High risk. Avoid for swing trades — leveraged companies are more volatile in downturns.
-- Exception: Financial sector companies (banks, insurance) naturally carry higher D/E ratios. Use Tier 1 capital ratio instead.
+- Exception: Banking and NBFC companies naturally carry higher D/E ratios due to their business model. Use Capital Adequacy Ratio (CAR) and NPA ratios instead for Indian banks.
 
 ### Interest Coverage Ratio
 - Above 10x: Very safe. Earnings easily cover interest payments.

@@ -13,22 +13,22 @@ from models.schemas import AgentOutput, SectorRanking
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are a senior equity strategist specialising in US sector rotation for swing trades (2-6 week holding period).
+SYSTEM_PROMPT = """You are a senior equity strategist specialising in Indian (NSE) sector rotation for swing trades (2-6 week holding period).
 
 You will be given:
-1. A table of sector ETF 1-month returns.
-2. Whether the S&P 500 index is above or below its 200-day EMA.
+1. A table of Nifty sectoral index 1-month returns.
+2. Whether the Nifty 50 index is above or below its 200-day EMA.
 
 Your job:
 - Identify the top 2-3 sectors with the best momentum for swing trades over the next 3-4 weeks.
 - Give brief reasoning for each sector (2-3 sentences).
 - Consider both absolute return and relative strength.
-- If the index is below its 200-day EMA, prefer defensive sectors.
+- If the index is below its 200-day EMA, prefer defensive sectors (FMCG, Pharma, IT).
 
 Respond in JSON:
 {
   "sectors": [
-    {"name": "Technology", "etf": "XLK", "rationale": "..."},
+    {"name": "IT", "index": "^CNXIT", "rationale": "..."},
     ...
   ]
 }"""
@@ -41,15 +41,15 @@ def run_sector_agent(
     """Run the sector agent and return (sector_names, agent_output)."""
 
     # Build a plain-text table for the LLM
-    table_lines = ["| Rank | Sector | ETF | 1-Month Return |", "| --- | --- | --- | --- |"]
+    table_lines = ["| Rank | Sector | Index | 1-Month Return |", "| --- | --- | --- | --- |"]
     for r in rankings:
         table_lines.append(f"| {r.rank} | {r.sector} | {r.etf} | {r.return_1m:+.2f}% |")
 
-    user_prompt = f"""## Sector ETF Performance (Last 30 Days)
+    user_prompt = f"""## Nifty Sectoral Index Performance (Last 30 Days)
 
 {chr(10).join(table_lines)}
 
-S&P 500 vs 200-day EMA: {"ABOVE (bullish)" if index_above_200ema else "BELOW (bearish)"}
+Nifty 50 vs 200-day EMA: {"ABOVE (bullish)" if index_above_200ema else "BELOW (bearish)"}
 
 Based on this data, which 2-3 sectors offer the best swing-trade setups over the next 3-4 weeks? Provide your answer as JSON."""
 
@@ -67,7 +67,7 @@ Based on this data, which 2-3 sectors offer the best swing-trade setups over the
         # Build readable narrative
         parts = []
         for s in parsed["sectors"]:
-            parts.append(f"**{s.get('name', '?')}** ({s.get('etf', '?')}): {s.get('rationale', '')}")
+            parts.append(f"**{s.get('name', '?')}** ({s.get('index', s.get('etf', '?'))}): {s.get('rationale', '')}")
         narrative = "\n".join(parts)
 
     output = AgentOutput(
@@ -75,6 +75,7 @@ Based on this data, which 2-3 sectors offer the best swing-trade setups over the
         agent_name="sector_agent",
         verdict=", ".join(sector_names) if sector_names else "No sectors identified",
         narrative=narrative,
+        prompt=user_prompt,
         tokens_used=result.get("tokens_used", 0),
         latency_ms=result.get("latency_ms", 0),
     )

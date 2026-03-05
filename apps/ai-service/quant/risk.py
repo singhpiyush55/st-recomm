@@ -16,7 +16,7 @@ from models.schemas import RiskMetrics
 def compute_risk_metrics(ticker: str, days: int = 180) -> RiskMetrics:
     """Compute risk metrics for a single ticker over ~6 months of data."""
     df = get_ohlcv(ticker, days)
-    index_df = get_index_data("^GSPC", days)
+    index_df = get_index_data("^NSEI", days)
 
     if df.empty or len(df) < 20:
         return _default_risk(ticker)
@@ -73,8 +73,8 @@ def _compute_beta(stock_returns: pd.Series, index_df: pd.DataFrame) -> float:
     return float(cov / var)
 
 
-def _compute_sharpe(returns: pd.Series, risk_free_annual: float = 0.05) -> float:
-    """Annualized Sharpe ratio = (mean daily return - rf) / std * sqrt(252)."""
+def _compute_sharpe(returns: pd.Series, risk_free_annual: float = 0.07) -> float:
+    """Annualized Sharpe ratio = (mean daily return - rf) / std * sqrt(252). Uses India 10Y G-sec ~7%."""
     if len(returns) < 20 or returns.std() == 0:
         return 0.0
 

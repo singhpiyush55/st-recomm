@@ -105,6 +105,7 @@ Analyse the chart setup using the guide above. Respond as JSON with verdict, nar
         agent_name="technical_agent",
         verdict=verdict,
         narrative=narrative,
+        prompt=user_prompt,
         tokens_used=result.get("tokens_used", 0),
         latency_ms=result.get("latency_ms", 0),
     )

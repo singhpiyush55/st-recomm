@@ -92,6 +92,7 @@ Analyse these ratios using the guide above. Respond as JSON with verdict and nar
         agent_name="fundamental_agent",
         verdict=verdict,
         narrative=narrative,
+        prompt=user_prompt,
         tokens_used=result.get("tokens_used", 0),
         latency_ms=result.get("latency_ms", 0),
     )
@@ -112,10 +113,11 @@ def _fmt_pct(val) -> str:
 
 
 def _fmt_dollar(val) -> str:
+    """Format currency in INR (Cr / L)."""
     if val is None:
         return "N/A"
-    if abs(val) >= 1e9:
-        return f"${val / 1e9:.2f}B"
-    if abs(val) >= 1e6:
-        return f"${val / 1e6:.1f}M"
-    return f"${val:,.0f}"
+    if abs(val) >= 1e7:
+        return f"₹{val / 1e7:.2f} Cr"
+    if abs(val) >= 1e5:
+        return f"₹{val / 1e5:.1f} L"
+    return f"₹{val:,.0f}"

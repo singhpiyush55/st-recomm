@@ -133,6 +133,7 @@ export async function triggerPipeline(
             responseJson: {
               verdict: agent.verdict,
               narrative: agent.narrative,
+              prompt: agent.prompt ?? "",
             },
             tokensUsed: agent.tokens_used ?? 0,
             latencyMs: agent.latency_ms ?? 0,
@@ -163,6 +164,32 @@ export async function triggerPipeline(
 }
 
 /**
+ * List all pipeline runs, newest first.
+ */
+export async function listPipelineRuns() {
+  const runs = await prisma.pipelineRun.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      status: true,
+      runDate: true,
+      sectorsTargeted: true,
+      totalStocksAnalyzed: true,
+      createdAt: true,
+    },
+  });
+
+  return runs.map((run) => ({
+    runId: run.id,
+    status: run.status,
+    startedAt: run.createdAt.toISOString(),
+    completedAt: run.runDate.toISOString(),
+    sectorsTargeted: run.sectorsTargeted,
+    totalStocksAnalyzed: run.totalStocksAnalyzed,
+  }));
+}
+
+/**
  * Get the status of a pipeline run.
  */
 export async function getPipelineStatus(runId: string) {
@@ -188,4 +215,73 @@ export async function getPipelineStatus(runId: string) {
     sectorsTargeted: run.sectorsTargeted,
     totalStocksAnalyzed: run.totalStocksAnalyzed,
   };
+}
+
+/**
+ * Get all LLM agent outputs for a given pipeline run.
+ * Groups them by ticker so the frontend can show a conversation per stock.
+ */
+export async function getRunAgentOutputs(runId: string) {
+  const recs = await prisma.recommendation.findMany({
+    where: { runId },
+    select: {
+      id: true,
+      ticker: true,
+      llmOutputs: {
+        orderBy: { stage: "asc" },
+        select: {
+          stage: true,
+          promptHash: true,
+          responseJson: true,
+          tokensUsed: true,
+          latencyMs: true,
+          createdAt: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  return recs.map((rec) => ({
+    ticker: rec.ticker,
+    agents: rec.llmOutputs.map((o) => ({
+      stage: o.stage,
+      agentName: o.promptHash,
+      response: o.responseJson as { verdict?: string; narrative?: string; prompt?: string },
+      tokensUsed: o.tokensUsed,
+      latencyMs: o.latencyMs,
+      createdAt: o.createdAt.toISOString(),
+    })),
+  }));
+}
+
+/**
+ * Delete a pipeline run and all its related data.
+ * Returns true if deleted, false if not found.
+ */
+export async function deletePipelineRun(runId: string): Promise<boolean> {
+  const run = await prisma.pipelineRun.findUnique({
+    where: { id: runId },
+    include: { recommendations: true },
+  });
+
+  if (!run) return false;
+
+  // Get all recommendation IDs
+  const recIds = run.recommendations.map((r) => r.id);
+
+  // Delete all related data in order (child to parent)
+  if (recIds.length > 0) {
+    await prisma.llmOutput.deleteMany({ where: { recommendationId: { in: recIds } } });
+    await prisma.sentimentData.deleteMany({ where: { recommendationId: { in: recIds } } });
+    await prisma.fundamentalData.deleteMany({ where: { recommendationId: { in: recIds } } });
+    await prisma.technicalSignal.deleteMany({ where: { recommendationId: { in: recIds } } });
+    await prisma.scoreBreakdown.deleteMany({ where: { recommendationId: { in: recIds } } });
+    await prisma.recommendation.deleteMany({ where: { runId } });
+  }
+
+  // Finally delete the pipeline run
+  await prisma.pipelineRun.delete({ where: { id: runId } });
+
+  return true;
 }

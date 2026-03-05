@@ -14,8 +14,16 @@ export async function getLatestRecommendations() {
 
   if (!latestRun) return [];
 
+  return getRecommendationsByRunId(latestRun.id);
+}
+
+/**
+ * Returns all recommendations for a specific pipeline run,
+ * joined with score breakdowns.
+ */
+export async function getRecommendationsByRunId(runId: string) {
   const recs = await prisma.recommendation.findMany({
-    where: { runId: latestRun.id },
+    where: { runId },
     orderBy: { finalScore: "desc" },
     include: {
       scoreBreakdown: true,

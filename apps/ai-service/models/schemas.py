@@ -34,7 +34,7 @@ class PipelineRequest(BaseModel):
         description="Explicit ticker list. If provided, skips sector screening.",
     )
     days: int = Field(default=200, description="Days of price history to fetch.")
-    top_n: int = Field(default=7, description="Max stocks to return in final output.")
+    top_n: int = Field(default=5, description="Max stocks to return in final output.")
 
 
 # ── Quant data models ───────────────────────────────────────────────
@@ -129,6 +129,7 @@ class AgentOutput(BaseModel):
     agent_name: str
     verdict: Optional[str] = None
     narrative: str = ""
+    prompt: str = ""
     tokens_used: int = 0
     latency_ms: int = 0
 

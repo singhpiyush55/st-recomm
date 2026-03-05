@@ -1,6 +1,6 @@
 """
-Sector ETF ranking by 1-month return.
-Input: none (or optional ETF list).
+Sector index ranking by 1-month return (Indian market / Nifty sectoral indices).
+Input: none (or optional index list).
 Output: list of SectorRanking models sorted by return.
 """
 

@@ -6,6 +6,7 @@ Main orchestration endpoint that wires all agents together.
 from __future__ import annotations
 
 import logging
+import time
 import uuid
 from datetime import datetime
 
@@ -136,10 +137,12 @@ async def run_pipeline(request: PipelineRequest):
                 # Stage 3: Fundamental agent
                 fund_output = run_fundamental_agent(qd.fundamental)
                 agent_outputs.append(fund_output)
+                time.sleep(0.5)  # Rate-limit protection for free-tier models
 
                 # Stage 4: Technical agent
                 tech_output, tech_extras = run_technical_agent(qd.technical)
                 agent_outputs.append(tech_output)
+                time.sleep(0.5)  # Rate-limit protection for free-tier models
 
                 # Stage 5: Report agent
                 entry_low = tech_extras.get("entry_low")
@@ -204,9 +207,9 @@ async def run_pipeline(request: PipelineRequest):
 
 
 def _check_index_trend() -> bool:
-    """Check if S&P 500 is above its 200-day EMA."""
+    """Check if Nifty 50 is above its 200-day EMA."""
     try:
-        df = get_index_data("^GSPC", 252)
+        df = get_index_data("^NSEI", 252)
         if df.empty or len(df) < 200:
             return True  # Assume bullish if no data
 

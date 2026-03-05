@@ -13,7 +13,7 @@ from models.schemas import AgentOutput, ScoreResult
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are a stock screener for swing trades (2-6 week holding period).
+SYSTEM_PROMPT = """You are a stock screener for Indian (NSE) swing trades (2-6 week holding period).
 
 You will be given:
 1. The top sectors selected by the sector agent.
@@ -28,7 +28,7 @@ Your job:
 Respond in JSON:
 {
   "selected": [
-    {"ticker": "AAPL", "reason": "..."},
+    {"ticker": "RELIANCE.NS", "reason": "..."},
     ...
   ]
 }"""
@@ -88,6 +88,7 @@ Select the top {top_n} stocks for swing trades. Respond as JSON."""
         agent_name="screener_agent",
         verdict=f"Selected {len(selected)} stocks",
         narrative=narrative,
+        prompt=user_prompt,
         tokens_used=result.get("tokens_used", 0),
         latency_ms=result.get("latency_ms", 0),
     )
